@@ -104,8 +104,14 @@ border:1px solid #333;
 <h3>Simplified Text</h3>
 <p id="simple"></p>
 
-<h3>Summary</h3>
-<p id="summary"></p>
+<h3>Transcription</h3>
+<p id="transcription"></p>
+
+<h3>Answer</h3>
+<p id="answer"></p>
+
+<h3>Sources</h3>
+<p id="sources"></p>
 
 </div>
 
@@ -149,8 +155,25 @@ body:JSON.stringify({text:text})
 .then(res=>res.json())
 .then(data=>{
 
-document.getElementById("simple").innerText = data.simplified
-document.getElementById("summary").innerText = data.summary
+if(data.error){
+
+document.getElementById("status").innerText=data.error
+
+return
+
+}
+
+document.getElementById("status").innerText="Done"
+
+document.getElementById("transcription").innerText=data.transcription
+document.getElementById("language").innerText=data.language
+document.getElementById("textInput").value=data.transcription
+document.getElementById("answer").innerText = data.answer
+
+// format sources nicely
+if(data.sources){
+document.getElementById("sources").innerText = data.sources.join("\n")
+}
 
 })
 
