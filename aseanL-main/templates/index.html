@@ -2,7 +2,6 @@
 <html>
 
 <head>
-
 <title>AI Policy Simplifier</title>
 
 <style>
@@ -42,10 +41,6 @@ margin-bottom:20px;
 font-size:14px;
 }
 
-.buttons{
-text-align:center;
-}
-
 button{
 padding:12px 20px;
 margin:8px;
@@ -53,22 +48,11 @@ border:none;
 border-radius:10px;
 font-size:15px;
 cursor:pointer;
-transition:0.25s;
 }
 
 .mic{
 background:#2d7dff;
 color:white;
-}
-
-.simplify{
-background:#00c97f;
-color:white;
-}
-
-button:hover{
-transform:scale(1.07);
-opacity:0.9;
 }
 
 .output{
@@ -89,24 +73,22 @@ border:1px solid #333;
 
 <h1>AI Policy Simplifier</h1>
 
-<textarea id="textInput" placeholder="Press the microphone and start speaking..."></textarea>
+<textarea id="textInput" placeholder="Press microphone and speak..."></textarea>
 
-<div class="buttons">
-
-<button class="mic" onclick="startListening()">🎤 Audio Translator</button>
-
-<button class="simplify" onclick="simplifyText()">✨ Simplifier</button>
-
+<div style="text-align:center">
+<button class="mic" onclick="startRecording()">🎤 Speak</button>
 </div>
 
 <div class="output">
 
-<h3>Simplified Text</h3>
-<p id="simple"></p>
+<p id="status"></p>
+
+<h3>Detected Language</h3>
+<p id="language"></p>
 
 <h3>Transcription</h3>
 <p id="transcription"></p>
-
+  
 <h3>Answer</h3>
 <p id="answer"></p>
 
@@ -119,39 +101,145 @@ border:1px solid #333;
 
 <script>
 
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+let mediaRecorder
+let audioChunks=[]
+let stream
+let audioContext
+let analyser
+let silenceStart=null
 
-const recognition = new SpeechRecognition()
+const silenceThreshold = 0.02
+const silenceDelay = 2000
 
-recognition.lang = "en-US"
-recognition.continuous = false
+async function startRecording(){
 
-function startListening(){
+audioChunks=[]
 
-recognition.start()
+document.getElementById("status").innerText="Recording..."
+
+try{
+
+stream = await navigator.mediaDevices.getUserMedia({audio:true})
+
+}catch(err){
+
+document.getElementById("status").innerText="Microphone permission denied"
+return
 
 }
 
-recognition.onresult = function(event){
+audioContext = new AudioContext()
 
-let speech = event.results[0][0].transcript
+const source = audioContext.createMediaStreamSource(stream)
 
-document.getElementById("textInput").value = speech
+analyser = audioContext.createAnalyser()
+
+analyser.fftSize = 2048
+
+source.connect(analyser)
+
+mediaRecorder = new MediaRecorder(stream)
+
+mediaRecorder.ondataavailable = e=>{
+if(e.data.size>0){
+audioChunks.push(e.data)
+}
+}
+
+mediaRecorder.onstop = sendAudio
+
+mediaRecorder.start(200)
+
+detectSilence()
 
 }
 
-function simplifyText(){
+function detectSilence(){
 
-let text = document.getElementById("textInput").value
+const data = new Uint8Array(analyser.fftSize)
 
-fetch("/simplify",{
+function check(){
+
+analyser.getByteTimeDomainData(data)
+
+let sum=0
+
+for(let i=0;i<data.length;i++){
+let value=(data[i]-128)/128
+sum+=value*value
+}
+
+let volume=Math.sqrt(sum/data.length)
+
+if(volume < silenceThreshold){
+
+if(!silenceStart){
+silenceStart=Date.now()
+}
+
+if(Date.now()-silenceStart > silenceDelay){
+
+stopRecording()
+return
+
+}
+
+}else{
+
+silenceStart=null
+
+}
+
+requestAnimationFrame(check)
+
+}
+
+check()
+
+}
+
+function stopRecording(){
+
+if(mediaRecorder && mediaRecorder.state !== "inactive"){
+mediaRecorder.stop()
+}
+
+if(stream){
+stream.getTracks().forEach(track=>track.stop())
+stream=null
+}
+
+if(audioContext){
+audioContext.close()
+audioContext=null
+}
+
+}
+
+function sendAudio(){
+
+if(audioChunks.length===0){
+
+document.getElementById("status").innerText="No audio recorded"
+
+return
+
+}
+
+document.getElementById("status").innerText="Processing..."
+
+const audioBlob=new Blob(audioChunks,{type:"audio/webm"})
+
+const formData=new FormData()
+
+formData.append("audio",audioBlob,"recording.webm")
+
+fetch("/transcribe",{
+
 method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify({text:text})
-})
+body:formData
 
+})
 .then(res=>res.json())
 .then(data=>{
 
@@ -182,5 +270,4 @@ document.getElementById("sources").innerText = data.sources.join("\n")
 </script>
 
 </body>
-
 </html>
