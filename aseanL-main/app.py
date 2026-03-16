@@ -55,10 +55,13 @@ def transcribe():
     if not raw_text:
         return jsonify({"error": "Transcription failed"}), 500
 
-
+    response,sources = rag_engine(raw_text)
+    
     return jsonify({
     "language": language,
     "transcription": raw_text,
+    "answer": response,
+    "sources": sources
   })
 
 
