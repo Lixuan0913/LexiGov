@@ -30,7 +30,7 @@ def transcribe_audio(audio_path):
 
 @app.route("/")
 def home():
-    return render_template("aseanL.html")
+    return render_template("index.html")
 
 
 @app.route("/chat", methods=["POST"])
