@@ -311,6 +311,7 @@
     <div class="input-area">
       <input id="input" placeholder="Ask LexiGov..." onkeydown="handleKey(event)">
       <button class="icon-btn" onclick="startVoice()"><i data-lucide="mic"></i></button>
+       <button class="icon-btn" id="voiceToggleBtn" onclick="toggleVoice()">🔊</button>
       <button onclick="sendMessage()">Send</button>
     </div>
   </div>
@@ -436,6 +437,8 @@
               fullResponse += "\n\nSources:\n" + data.sources.join("\n");
             }
             addMessage(fullResponse, "bot");
+
+            speakText(fullResponse, data.language);
           }
         })
         .catch(err => {
@@ -553,6 +556,8 @@
               fullResponse += "\n\nSources:\n" + data.sources.join("\n");
             }
             addMessage(fullResponse, "bot");
+
+            speakText(fullResponse, data.language);
           }
         })
         .catch(err => {
@@ -560,6 +565,59 @@
           addMessage("Error connecting to server.", "bot");
         });
     }
+
+    let voiceEnabled = true;
+
+function toggleVoice() {
+  voiceEnabled = !voiceEnabled;
+
+  const btn = document.getElementById("voiceToggleBtn");
+
+  if (voiceEnabled) {
+    btn.innerText = "🔊";
+  } else {
+    btn.innerText = "🔇";
+    speechSynthesis.cancel();
+  }
+}
+
+let voices = [];
+
+// Load voices properly (IMPORTANT FIX)
+speechSynthesis.onvoiceschanged = () => {
+  voices = speechSynthesis.getVoices();
+};
+
+function speakText(text, lang = "en") {
+  if (!text || !voiceEnabled) return;
+
+  const speech = new SpeechSynthesisUtterance(text);
+
+  const langMap = {
+    en: "en-US",
+    ms: "ms-MY",
+    zh: "zh-CN",
+    th: "th-TH"
+  };
+
+  const targetLang = langMap[lang] || "en-US";
+  speech.lang = targetLang;
+
+  // 🔥 Better voice selection (partial match)
+  const selectedVoice = voices.find(v =>
+    v.lang.toLowerCase().startsWith(targetLang.toLowerCase().split("-")[0])
+  );
+
+  if (selectedVoice) {
+    speech.voice = selectedVoice;
+  }
+
+  speech.rate = 1;
+  speech.pitch = 1;
+
+  speechSynthesis.cancel();
+  speechSynthesis.speak(speech);
+}
   </script>
 
 </body>
