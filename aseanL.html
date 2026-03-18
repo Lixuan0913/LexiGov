@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LexiGov AI</title>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+/* ===== Base Styles ===== */
+body {
+  margin: 0;
+  display: flex;
+  height: 100vh;
+  font-family: "Inter", "Segoe UI", sans-serif;
+  background: #f9fafb;
+  color: #111827;
+}
+
+/* ===== Sidebar ===== */
+.sidebar {
+  width: 260px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  border-right: 1px solid #e5e7eb;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+}
+.logo {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 25px;
+}
+.new-chat {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  color: #fff;
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
+  cursor: pointer;
+  margin-bottom: 20px;
+  font-weight: 500;
+  border: none;
+  transition: all 0.2s ease;
+}
+.new-chat:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(79,70,229,0.3);
+}
+
+/* ===== Chat Container ===== */
+.chat-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #f9fafb;
+}
+
+/* Header */
+.header {
+  padding: 18px 24px;
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+  font-weight: 600;
+  font-size: 18px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+}
+
+/* Chat Box */
+.chat-box {
+  flex: 1;
+  overflow-y: auto;
+  padding: 25px;
+  position: relative;
+  scroll-behavior: smooth;
+}
+
+/* Welcome Message */
+#welcome {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: #999;
+  pointer-events: none;
+}
+#welcome h1 {
+  font-size: 28px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #111;
+  opacity: 0.15;
+}
+#welcome p {
+  font-size: 14px;
+  color: #777;
+  opacity: 0.4;
+}
+
+/* Messages */
+.message {
+  display: flex;
+  margin: 14px 0;
+  animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn {
+  from {opacity: 0; transform: translateY(8px);}
+  to {opacity: 1; transform: translateY(0);}
+}
+.bubble {
+  padding: 13px 16px;
+  border-radius: 12px;
+  max-width: 70%;
+  line-height: 1.6;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  white-space: pre-wrap;
+}
+.user {
+  justify-content: flex-end;
+}
+.user .bubble {
+  background: #e0e7ff;
+  color: #111827;
+  border-bottom-right-radius: 4px;
+}
+.bot .bubble {
+  background: #fff;
+  color: #111827;
+  border: 1px solid #e5e7eb;
+  border-bottom-left-radius: 4px;
+}
+
+/* Input Area */
+.input-area {
+  display: flex;
+  padding: 15px 20px;
+  background: #fff;
+  border-top: 1px solid #e5e7eb;
+  gap: 10px;
+  align-items: center;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.03);
+}
+input {
+  flex: 1;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  background: #f3f4f6;
+  color: #111827;
+  font-size: 15px;
+  transition: 0.2s;
+}
+input:focus {
+  background: #fff;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+  outline: none;
+}
+input::placeholder { color: #9ca3af; }
+
+button {
+  padding: 12px 16px;
+  background: #111827;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+button:hover { background: #4f46e5; }
+
+.icon-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease;
+}
+.icon-btn:hover {
+  background: #f3f4f6;
+  border-radius: 50%;
+}
+.icon-btn svg {
+  width: 20px;
+  height: 20px;
+  stroke: #6b7280;
+}
+.icon-btn:hover svg { stroke: #111827; }
+
+/* Scrollbar */
+.chat-box::-webkit-scrollbar { width: 8px; }
+.chat-box::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+.chat-box::-webkit-scrollbar-thumb:hover { background: #999; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .header { font-size: 16px; }
+  .bubble { max-width: 80%; }
+}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="logo">LexiGov</div>
+  <div class="new-chat" onclick="newChat()">+ New Chat</div>
+</div>
+
+<div class="chat-container">
+  <div class="header">LexiGov Assistant</div>
+
+  <div class="chat-box" id="chat">
+    <div id="welcome">
+      <h1>Welcome to LexiGov</h1>
+      <p>Your ASEAN AI Assistant</p>
+    </div>
+  </div>
+
+  <div class="input-area">
+    <input id="input" placeholder="Ask LexiGov..." onkeydown="handleKey(event)">
+    <button class="icon-btn" onclick="startVoice()"><i data-lucide="mic"></i></button>
+    <button onclick="sendMessage()">Send</button>
+  </div>
+</div>
+
+<script>
+lucide.createIcons();
+
+let chatBox = document.getElementById("chat");
+let welcome = document.getElementById("welcome");
+
+// Send message
+function sendMessage() {
+  let input = document.getElementById("input");
+  let text = input.value.trim();
+  if (!text) return;
+
+  // Hide welcome on first message
+  if (welcome) welcome.style.display = "none";
+
+  addMessage(text, "user");
+  input.value = "";
+
+  let botMsg = addMessage("Thinking...", "bot");
+
+  setTimeout(() => {
+    let reply = generateResponse(text);
+    botMsg.querySelector(".bubble").innerText = reply;
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }, 800);
+}
+
+// Add message to chat
+function addMessage(text, type) {
+  let msg = document.createElement("div");
+  msg.className = "message " + type;
+
+  let bubble = document.createElement("div");
+  bubble.className = "bubble";
+  bubble.innerText = text;
+
+  msg.appendChild(bubble);
+  chatBox.appendChild(msg);
+  chatBox.scrollTop = chatBox.scrollHeight;
+  return msg;
+}
+
+// Enter key
+function handleKey(e) { if (e.key === "Enter") sendMessage(); }
+
+// New chat
+function newChat() {
+  chatBox.innerHTML = `
+    <div id="welcome">
+      <h1>Welcome to LexiGov</h1>
+      <p>Your ASEAN AI Assistant</p>
+    </div>
+  `;
+}
+
+// Simple AI replies (ASEAN-friendly placeholders)
+function generateResponse(q) {
+  const lower = q.toLowerCase();
+  if (lower.includes("license")) return "To renew a license, visit your local authority or SSM portal.";
+  if (lower.includes("employment")) return "Malaysia's Employment Act covers working hours, leave, and termination.";
+  if (lower.includes("aid") || lower.includes("grant")) return "SME Bank and PENJANA provide financial assistance for SMEs.";
+  return "I can help with licenses, laws, or government policies — please specify your query.";
+}
+
+// ===== Voice Recognition =====
+function startVoice() {
+  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  recognition.lang = "ms-MY"; // ASEAN language support (Malay)
+  recognition.start();
+  recognition.onresult = (event) => {
+    document.getElementById("input").value = event.results[0][0].transcript;
+  };
+  recognition.onerror = (event) => console.error(event.error);
+}
+</script>
+
+</body>
+</html>
