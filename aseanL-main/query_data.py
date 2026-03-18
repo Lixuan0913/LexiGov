@@ -147,7 +147,7 @@ def rag_engine(query_text):
             break
 
     return answer, sources
-    #print(response)
+    #print(answer)
     #print(sources)
 
 #rag_engine("What is Immigration Act?")
