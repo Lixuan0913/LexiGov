@@ -90,10 +90,10 @@ def rag_engine(query_text):
 
     sources = sorted(list(sources))
 
-    #return response, sources
-    print(response)
-    print(sources)
+    return response, sources
+    #print(response)
+    #print(sources)
 
-rag_engine("How to let elders have a healthy diet")
+#rag_engine("How to let elders have a healthy diet")
 
 

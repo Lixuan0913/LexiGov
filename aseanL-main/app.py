@@ -30,7 +30,22 @@ def transcribe_audio(audio_path):
 
 @app.route("/")
 def home():
-    return render_template("index.html")
+    return render_template("aseanL.html")
+
+
+@app.route("/chat", methods=["POST"])
+def chat():
+    data = request.json
+    text = data.get("text", "")
+    if not text:
+        return jsonify({"error": "No text provided"}), 400
+
+    response, sources = rag_engine(text)
+    
+    return jsonify({
+        "answer": response,
+        "sources": sources
+    })
 
 
 @app.route("/transcribe", methods=["POST"])
