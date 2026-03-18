@@ -1,5 +1,7 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_file
+from google.cloud import texttospeech
 from faster_whisper import WhisperModel
+import io
 import os
 from query_data import rag_engine
 import tempfile
@@ -31,6 +33,7 @@ def transcribe_audio(audio_path):
 @app.route("/")
 def home():
     return render_template("index.html")
+
 
 
 @app.route("/chat", methods=["POST"])
@@ -80,5 +83,45 @@ def transcribe():
   })
 
 
+
+@app.route("/tts", methods=["POST"])
+def tts():
+    data = request.get_json()
+    text = data.get("text", "")
+    lang = data.get("lang", "en")
+
+    client = texttospeech.TextToSpeechClient()
+
+    language_map = {
+        "en": "en-US",
+        "ms": "ms-MY",
+        "zh": "cmn-CN",
+        "th": "th-TH"
+    }
+
+    language_code = language_map.get(lang, "en-US")
+
+    synthesis_input = texttospeech.SynthesisInput(text=text)
+
+    voice = texttospeech.VoiceSelectionParams(
+        language_code=language_code,
+        ssml_gender=texttospeech.SsmlVoiceGender.FEMALE  # nicer voice
+    )
+
+    audio_config = texttospeech.AudioConfig(
+        audio_encoding=texttospeech.AudioEncoding.MP3
+    )
+
+    response = client.synthesize_speech(
+        input=synthesis_input,
+        voice=voice,
+        audio_config=audio_config
+    )
+
+    return send_file(
+        io.BytesIO(response.audio_content),
+        mimetype="audio/mpeg"
+    )
+    
 if __name__ == "__main__":
     app.run(debug=True)
