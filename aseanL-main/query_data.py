@@ -115,10 +115,10 @@ def rag_engine(query_text):
         if len(sources) == 3: 
             break
 
-    #return response, sources
-    print(response)
-    print(sources)
+    return response, sources
+    #print(response)
+    #print(sources)
 
-rag_engine("How long can foreign workers work in Malaysia?")
+#rag_engine("How long can foreign workers work in Malaysia?")
 
 
