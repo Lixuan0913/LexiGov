@@ -5,6 +5,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
+import json
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -74,51 +75,81 @@ rag_chain = (
 def rag_engine(query_text):
 
     # retrieve with similarity score
-    results = db.similarity_search_with_score(query_text, k=20)
+    results = db.similarity_search_with_score(query_text, k=50)
 
-    # filter low similarity
+    # -----------------------------
+    # Confidence check
+    # -----------------------------
+    best_score = results[0][1] if results else 1.0
+    CONFIDENCE_THRESHOLD = 0.5
+
+    # -----------------------------
+    # Filter relevant docs
+    # -----------------------------
     filtered_docs = []
     for doc, score in results:
-        if score < 0.55:   # threshold (lower = stricter)
+        if score < 0.55:
             filtered_docs.append(doc)
 
-    # fallback if nothing found
-    if len(filtered_docs) == 0:
+    # -----------------------------
+    # If no relevant docs → NO SOURCES
+    # -----------------------------
+    no_relevant_docs = len(filtered_docs) == 0
+
+    # fallback (for answer only)
+    if no_relevant_docs:
         filtered_docs = [doc for doc, score in results[:3]]
 
+    # -----------------------------
+    # Generate response
+    # -----------------------------
     context = format_docs(filtered_docs)
 
     chain = prompt | llm | StrOutputParser()
 
-    response = chain.invoke({
+    import json
+
+    raw_response = chain.invoke({
         "context": context,
         "question": query_text
     })
 
-    # ----------------------------- # TOP 3 UNIQUE SOURCES # ----------------------------- #
-    sources = [] 
+    try:
+        parsed = json.loads(raw_response)
+        answer = parsed.get("answer", "")
+        found = parsed.get("found", False)
+    except:
+        answer = raw_response
+        found = False
 
-    seen_titles = set() 
+    # -----------------------------
+    # Decide sources (🔥 FIX HERE)
+    # -----------------------------
+    if not found or best_score > CONFIDENCE_THRESHOLD or no_relevant_docs:
+        return answer, []   # ✅ ALWAYS EMPTY LIST
 
-    for doc in filtered_docs: 
+    # -----------------------------
+    # Build sources
+    # -----------------------------
+    sources = []
+    seen_titles = set()
 
-        source = doc.metadata.get("source", "Unknown") 
-        file_name = os.path.basename(source) 
-        title = file_name.replace(".pdf", "") 
-        title = title.replace("_", " ") 
-        title = title.title() 
-        
-        if title not in seen_titles: 
-            seen_titles.add(title) 
-            sources.append(title) 
+    for doc in filtered_docs:
+        source = doc.metadata.get("source", "Unknown")
+        file_name = os.path.basename(source)
+        title = file_name.replace(".pdf", "").replace("_", " ").title()
 
-        if len(sources) == 3: 
+        if title not in seen_titles:
+            seen_titles.add(title)
+            sources.append(title)
+
+        if len(sources) == 3:
             break
 
-    #return response, sources
-    print(response)
-    print(sources)
+    return answer, sources
+    #print(response)
+    #print(sources)
 
-rag_engine("How long can foreign workers work in Malaysia?")
+#rag_engine("What is Immigration Act?")
 
 
