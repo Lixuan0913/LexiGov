@@ -8,7 +8,7 @@ import tempfile
 
 
 
-model = WhisperModel("medium", device="cpu")
+model = WhisperModel("small", device="cpu")
 
 app = Flask(__name__)
 
