@@ -1,0 +1,16 @@
+flask
+faster-whisper
+langchain-community
+langchain-huggingface
+langchain-google-genai
+langchain-core
+langchain-text-splitters
+langchain-chroma
+sentence-transformers
+pypdf
+python-dotenv
+soundfile
+pymupdf
+pytesseract
+pillow
+google-cloud-texttospeech
