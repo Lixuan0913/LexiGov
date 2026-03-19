@@ -9,8 +9,6 @@ langchain-chroma
 sentence-transformers
 pypdf
 python-dotenv
-speechrecognition
-pyaudio
 soundfile
 pymupdf
 pytesseract
