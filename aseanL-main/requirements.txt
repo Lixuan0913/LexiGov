@@ -14,3 +14,4 @@ pymupdf
 pytesseract
 pillow
 google-cloud-texttospeech
+gunicorn
