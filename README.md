@@ -11,7 +11,8 @@ pip (Python package manager)
 
 
 📥 1. Clone the Repository
-       git clone https://github.com/Lixuan0913/LexiGov.git
+       ```bash
+        git clone https://github.com/your-username/your-repo.git
 
     After clone the repo please change directory below
        cd LexiGov
