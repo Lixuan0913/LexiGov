@@ -23,7 +23,7 @@ pip install -r requirements.txt
 
 <div style="border:1px solid #ccc; padding:12px; margin:12px 0; border-radius:6px;">
 <b>3️⃣ Create .env File</b><br>
-Add the following inside <code>.env</code>:  
+Create and Add the following inside <code>.env</code>:  
 <pre>
 GOOGLE_API_KEY=your_google_api_key
 HF_TOKEN=your_huggingface_token
