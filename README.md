@@ -1,26 +1,38 @@
-⚙️ Setup Guide
+# 🌏 ASEAN Multilingual AI Assistant
 
-Follow these steps to run the ASEAN Multilingual AI Assistant locally.
+An AI-powered assistant that makes ASEAN government policies **easy to understand, accessible, and multilingual**.
 
-📋 Prerequisites
+---
 
-Make sure you have installed:
+## 🚀 Overview
 
-Python 3.10+
-pip (Python package manager)
+The ASEAN Multilingual AI Assistant allows users to:
 
+- Ask questions using **text or voice**
+- Understand policies in **multiple ASEAN languages**
+- Receive **simple, human-friendly explanations**
 
-📥 1. Clone the Repository
-       ```bash
-        git clone https://github.com/your-username/your-repo.git
+This system bridges the gap between **complex government policies** and **everyday users**.
 
-    After clone the repo please change directory below
-       cd LexiGov
+---
 
-📦 2. Install Dependencies
-      pip install -r requirements.txt
+## ✨ Key Features
 
-   3. Set Up Environment Variables
-      Create a .env file in the root directory:
-     GOOGLE_API_KEY=your_google_api_key
-     HF_TOKEN=your_huggingface_token
+- 🌐 **Multilingual Understanding**  
+  Supports Bahasa Melayu, English, Thai, Chinese, and more
+
+- 📚 **RAG (Retrieval-Augmented Generation)**  
+  Retrieves real policy documents for accurate answers
+
+- 🎤 **Speech-to-Text**  
+  Ask questions using your voice
+
+- 🔊 **Text-to-Speech**  
+  Listen to responses (useful for accessibility)
+
+- 🧠 **Policy Simplification**  
+  Converts complex legal text into easy explanations
+
+---
+
+## 🏗️ System Architecture
