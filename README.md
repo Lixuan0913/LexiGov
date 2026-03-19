@@ -9,7 +9,7 @@ Follow these steps to run the ASEAN Multilingual AI Assistant locally.
 <div style="border:1px solid #ccc; padding:12px; margin:12px 0; border-radius:6px;">
 <b>1️⃣ Clone the Repository</b><br>
 <pre>
-git clone [https://github.com/your-username/your-repo.git](https://github.com/Lixuan0913/LexiGov.git)
+git clone https://github.com/Lixuan0913/LexiGov.git
 cd LexiGov
 </pre>
 </div>
