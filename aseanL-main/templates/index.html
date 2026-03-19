@@ -311,6 +311,7 @@
     <div class="input-area">
       <input id="input" placeholder="Ask LexiGov..." onkeydown="handleKey(event)">
       <button class="icon-btn" onclick="startVoice()"><i data-lucide="mic"></i></button>
+       <button class="icon-btn" id="voiceToggleBtn" onclick="toggleVoice()">🔊</button>
       <button onclick="sendMessage()">Send</button>
     </div>
   </div>
@@ -436,6 +437,8 @@
               fullResponse += "\n\nSources:\n" + data.sources.join("\n");
             }
             addMessage(fullResponse, "bot");
+
+            speakText(fullResponse, data.language);
           }
         })
         .catch(err => {
@@ -459,37 +462,48 @@
     const silenceThreshold = 0.02;
     const silenceDelay = 2000;
 
-    async function startVoice() {
-      if (isRecording) {
-        stopRecording();
-        return;
-      }
+    let liveMsg = null; // add this globally
 
-      audioChunks = [];
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      } catch (err) {
-        alert("Microphone permission denied.");
-        return;
-      }
+async function startVoice() {
+  if (isRecording) {
+    stopRecording();
+    return;
+  }
 
-      isRecording = true;
-      document.querySelector(".icon-btn").classList.add("recording");
-      if (welcome) welcome.style.display = "none";
+  audioChunks = [];
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch (err) {
+    alert("Microphone permission denied.");
+    return;
+  }
 
-      audioContext = new AudioContext();
-      const source = audioContext.createMediaStreamSource(stream);
-      analyser = audioContext.createAnalyser();
-      analyser.fftSize = 2048;
-      source.connect(analyser);
+  isRecording = true;
 
-      mediaRecorder = new MediaRecorder(stream);
-      mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
-      mediaRecorder.onstop = sendAudio;
-      mediaRecorder.start(200);
+  // ✅ SHOW LISTENING MESSAGE
+  liveMsg = displayMessage("🎤 Listening... Speak now", "bot");
 
-      detectSilence();
-    }
+
+  document.querySelector('[onclick="startVoice()"]').classList.add("recording");
+
+  if (welcome) welcome.style.display = "none";
+
+  audioContext = new AudioContext();
+  const source = audioContext.createMediaStreamSource(stream);
+  analyser = audioContext.createAnalyser();
+  analyser.fftSize = 2048;
+  source.connect(analyser);
+
+  mediaRecorder = new MediaRecorder(stream);
+  mediaRecorder.ondataavailable = e => { 
+    if (e.data.size > 0) audioChunks.push(e.data); 
+  };
+
+  mediaRecorder.onstop = sendAudio;
+  mediaRecorder.start(200);
+
+  detectSilence();
+}
 
     function detectSilence() {
       const data = new Uint8Array(analyser.fftSize);
@@ -528,7 +542,7 @@
     function sendAudio() {
       if (audioChunks.length === 0) return;
 
-      let botMsg = displayMessage("Listening...", "bot");
+      let botMsg = displayMessage("Processing audio...", "bot");
 
       const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
       const formData = new FormData();
@@ -553,6 +567,8 @@
               fullResponse += "\n\nSources:\n" + data.sources.join("\n");
             }
             addMessage(fullResponse, "bot");
+
+            speakText(fullResponse, data.language);
           }
         })
         .catch(err => {
@@ -560,6 +576,61 @@
           addMessage("Error connecting to server.", "bot");
         });
     }
+
+let voiceEnabled = true;
+let currentAudio = null;
+
+function toggleVoice() {
+  voiceEnabled = !voiceEnabled;
+
+  const btn = document.getElementById("voiceToggleBtn");
+
+  if (voiceEnabled) {
+    btn.innerText = "🔊";
+  } else {
+    btn.innerText = "🔇";
+
+    // 🔥 STOP CURRENT AUDIO
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio = null;
+    }
+  }
+}
+
+let voices = [];
+
+// Load voices properly (IMPORTANT FIX)
+speechSynthesis.onvoiceschanged = () => {
+  voices = speechSynthesis.getVoices();
+};
+
+function speakText(text, lang = "en") {
+  if (!text || !voiceEnabled) return;
+
+  fetch("/tts", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ text, lang })
+  })
+    .then(res => res.blob())
+    .then(audioBlob => {
+      const url = URL.createObjectURL(audioBlob);
+
+      // 🔥 stop previous audio if any
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio = null;
+      }
+
+      const audio = new Audio(url);
+      currentAudio = audio;
+
+      audio.play();
+    });
+}
   </script>
 
 </body>

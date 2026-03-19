@@ -4,7 +4,7 @@ from PIL import Image
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 import shutil
 import os
 import re
@@ -18,7 +18,7 @@ def generate_data_store():
     sections = split_by_section(pages)
     chunks = split_chunks(sections)
 
-    save_to_json(chunks)   
+    save_to_json(chunks)
     save_to_chroma(chunks)
 
 
@@ -34,12 +34,30 @@ def clean_text(text):
     text = re.sub(r"Page\s*\d+", "", text, flags=re.IGNORECASE)
     text = re.sub(r"http\S+|www\S+", "", text)
     text = re.sub(r"[ \t]+", " ", text)
-    text = re.sub(r"[^\x00-\x7F]+", " ", text)
 
     lines = text.split("\n")
     lines = [line.strip() for line in lines if len(line.strip()) > 3]
 
     return "\n".join(lines).strip()
+
+
+# -----------------------------
+# DETECT CATEGORY FROM FOLDER
+# -----------------------------
+def detect_category(file_path):
+
+    path = file_path.lower()
+
+    if "law" in path:
+        return "law"
+
+    if "medical" in path:
+        return "medical"
+
+    if "welfare" in path:
+        return "welfare"
+
+    return "general"
 
 
 # -----------------------------
@@ -60,7 +78,10 @@ def load_pdf():
             if file.endswith(".pdf"):
 
                 file_path = os.path.join(root, file)
+
                 print("Loading:", file_path)
+
+                category = detect_category(file_path)
 
                 pdf = fitz.open(file_path)
 
@@ -68,7 +89,7 @@ def load_pdf():
 
                     text = page.get_text()
 
-                    # OCR if empty
+                    # OCR fallback
                     if not text.strip():
 
                         pix = page.get_pixmap()
@@ -91,12 +112,15 @@ def load_pdf():
                             page_content=text,
                             metadata={
                                 "source": file_path,
-                                "page": page_num
+                                "page": page_num,
+                                "category": category,
+                                "file_name": os.path.basename(file_path)
                             }
                         )
                     )
 
     print("Total pages loaded:", len(pages))
+
     return pages
 
 
@@ -111,11 +135,14 @@ def split_by_section(pages):
 
         text = page.page_content
 
-        sections = re.split(r"\n\s*Section\s+\d+", text)
+        sections = re.split(
+            r"\n\s*(Section\s+\d+|[0-9]+\.)",
+            text
+        )
 
         for sec in sections:
 
-            if len(sec.strip()) > 50:
+            if len(sec.strip()) > 80:
 
                 section_docs.append(
                     Document(
@@ -125,6 +152,7 @@ def split_by_section(pages):
                 )
 
     print("Total sections created:", len(section_docs))
+
     return section_docs
 
 
@@ -134,8 +162,8 @@ def split_by_section(pages):
 def split_chunks(docs):
 
     splitter = RecursiveCharacterTextSplitter(
-        chunk_size=800,
-        chunk_overlap=150,
+        chunk_size=500,
+        chunk_overlap=120,
     )
 
     chunks = splitter.split_documents(docs)
@@ -149,7 +177,7 @@ def split_chunks(docs):
 # EMBEDDINGS
 # -----------------------------
 embeddings = HuggingFaceEmbeddings(
-    model_name="BAAI/bge-small-en-v1.5"
+    model_name="intfloat/multilingual-e5-small"
 )
 
 
@@ -169,7 +197,8 @@ def save_to_json(chunks):
             "id": i,
             "text": chunk.page_content,
             "source": chunk.metadata.get("source", ""),
-            "page": chunk.metadata.get("page", "")
+            "page": chunk.metadata.get("page", ""),
+            "category": chunk.metadata.get("category", "")
         })
 
     with open(json_path, "w", encoding="utf-8") as f:
@@ -198,8 +227,6 @@ def save_to_chroma(chunks):
         embeddings,
         persist_directory=chroma_path
     )
-
-    db.persist()
 
     print(f"Saved {len(chunks)} chunks to {chroma_path}")
 

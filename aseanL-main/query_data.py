@@ -1,10 +1,11 @@
 import os
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
+import json
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -13,23 +14,30 @@ GOOGLE_API_KEY=os.getenv("GOOGLE_API_KEY")
 
 
 PROMPT_TEMPLATE = """
-Answer the question using ONLY the context below.
+You are LexiGov, a helpful and knowledgeable AI assistant specializing in ASEAN government policies, laws, and public services.
+Your goal is to provide clear, accurate, and easy-to-understand answers based strictly on the provided context.
 
-Context:
+Context Information:
+---------------------
 {context}
+---------------------
 
-Question:
-{question}
+User Question: {question}
 
-Instructions:
-- Write the answer in 3-5 bullet points
-- Use simple words a 5th grade child can understand
-- Do not add information outside the context
+Instructions for your response:
+1. Analyze the context and answer the user's question accurately.
+2. Use clear, simple, and accessible language (avoid overly complex legal jargon).
+3. Structure your answer well. Use bullet points if it helps break down complex steps or multiple items, but maintain a polite, conversational tone.
+4. If the context does not contain the answer to the question, politely state: "I'm sorry, but I couldn't find the specific information regarding your question in the official documents provided." Do NOT make up an answer.
+5. CRITICAL: You MUST reply in the exact same language that the user used in their question.
+
+Answer:
 """
+
 
 # Embeddings
 embeddings = HuggingFaceEmbeddings(
-    model_name="BAAI/bge-small-en-v1.5",
+    model_name="intfloat/multilingual-e5-small"
 )
 
 # Vector database
@@ -66,34 +74,82 @@ rag_chain = (
 
 def rag_engine(query_text):
 
-    docs = retriever.invoke(query_text)
+    # retrieve with similarity score
+    results = db.similarity_search_with_score(query_text, k=50)
 
-    context = format_docs(docs)
+    # -----------------------------
+    # Confidence check
+    # -----------------------------
+    best_score = results[0][1] if results else 1.0
+    CONFIDENCE_THRESHOLD = 0.5
 
-    response = rag_chain.invoke(query_text)
+    # -----------------------------
+    # Filter relevant docs
+    # -----------------------------
+    filtered_docs = []
+    for doc, score in results:
+        if score < 0.55:
+            filtered_docs.append(doc)
 
-    sources = set()
-    for doc in docs:
+    # -----------------------------
+    # If no relevant docs → NO SOURCES
+    # -----------------------------
+    no_relevant_docs = len(filtered_docs) == 0
+
+    # fallback (for answer only)
+    if no_relevant_docs:
+        filtered_docs = [doc for doc, score in results[:3]]
+
+    # -----------------------------
+    # Generate response
+    # -----------------------------
+    context = format_docs(filtered_docs)
+
+    chain = prompt | llm | StrOutputParser()
+
+    import json
+
+    raw_response = chain.invoke({
+        "context": context,
+        "question": query_text
+    })
+
+    try:
+        parsed = json.loads(raw_response)
+        answer = parsed.get("answer", "")
+        found = parsed.get("found", False)
+    except:
+        answer = raw_response
+        found = False
+
+    # -----------------------------
+    # Decide sources (🔥 FIX HERE)
+    # -----------------------------
+    if not found or best_score > CONFIDENCE_THRESHOLD or no_relevant_docs:
+        return answer, []   # ✅ ALWAYS EMPTY LIST
+
+    # -----------------------------
+    # Build sources
+    # -----------------------------
+    sources = []
+    seen_titles = set()
+
+    for doc in filtered_docs:
         source = doc.metadata.get("source", "Unknown")
-        page = doc.metadata.get("page", "N/A")
         file_name = os.path.basename(source)
-        # remove .pdf
-        title = file_name.replace(".pdf", "")
+        title = file_name.replace(".pdf", "").replace("_", " ").title()
 
-        # replace underscores if any
-        title = title.replace("_", " ")
+        if title not in seen_titles:
+            seen_titles.add(title)
+            sources.append(title)
 
-       # make title look nice
-        title = title.title()
+        if len(sources) == 3:
+            break
 
-        sources.add(f"{title} — Page {page}")
-
-    sources = sorted(list(sources))
-
-    return response, sources
-    #print(response)
+    return answer, sources
+    #print(answer)
     #print(sources)
 
-#rag_engine("How to let elders have a healthy diet")
+#rag_engine("What is Immigration Act?")
 
 
