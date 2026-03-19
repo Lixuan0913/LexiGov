@@ -4,30 +4,43 @@ Follow these steps to run the ASEAN Multilingual AI Assistant locally.
 
 ---
 
-### 🧊 Quick Setup (All-in-One) ###
+### 🧊 Quick Setup (All-in-One)
 
-
-> **1️⃣ Clone the Repository**
-```bash  
-git clone https://github.com/your-username/your-repo.git  
+<div style="border:1px solid #ccc; padding:12px; margin:12px 0; border-radius:6px;">
+<b>1️⃣ Clone the Repository</b><br>
+<pre>
+git clone https://github.com/your-username/your-repo.git
 cd LexiGov
+</pre>
+</div>
 
-> **2️⃣ Install Dependencies**
-```bash    
-pip install -r requirements.txt  
+<div style="border:1px solid #ccc; padding:12px; margin:12px 0; border-radius:6px;">
+<b>2️⃣ Install Dependencies</b><br>
+<pre>
+pip install -r requirements.txt
+</pre>
+</div>
 
-> **3️⃣ Create .env file**
-```bash  
-(add the following inside .env)  
-GOOGLE_API_KEY=your_google_api_key  
-HF_TOKEN=your_huggingface_token  
-GOOGLE_APPLICATION_CREDENTIALS=./credentials.json  
+<div style="border:1px solid #ccc; padding:12px; margin:12px 0; border-radius:6px;">
+<b>3️⃣ Create .env File</b><br>
+Add the following inside <code>.env</code>:  
+<pre>
+GOOGLE_API_KEY=your_google_api_key
+HF_TOKEN=your_huggingface_token
+GOOGLE_APPLICATION_CREDENTIALS=./credentials.json
+</pre>
+</div>
 
-> **4️⃣ Run the Server**
-```bash   
-python app.py 
+<div style="border:1px solid #ccc; padding:12px; margin:12px 0; border-radius:6px;">
+<b>4️⃣ Run the Server</b><br>
+<pre>
+python app.py
+</pre>
+</div>
 
-> **5️⃣ Open in Browser**
-```bash  
-http://localhost:5000  
-
+<div style="border:1px solid #ccc; padding:12px; margin:12px 0; border-radius:6px;">
+<b>5️⃣ Open in Browser</b><br>
+<pre>
+http://localhost:5000
+</pre>
+</div>
