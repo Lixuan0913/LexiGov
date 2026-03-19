@@ -4,7 +4,7 @@ Follow these steps to run the ASEAN Multilingual AI Assistant locally.
 
 ---
 
-### 🧊 Quick Setup (All-in-One)
+### 🧊 Quick Setup (All-in-One) ###
 
 
 > **1️⃣ Clone the Repository**  
