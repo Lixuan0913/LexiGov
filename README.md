@@ -14,20 +14,21 @@ Follow these steps to run the ASEAN Multilingual AI Assistant locally.
 ### 🧊 Quick Setup (All-in-One)
 
 ```bash
-# Clone the Repository
+# 1. Clone the Repository
 git clone https://github.com/your-username/your-repo.git
 cd LexiGov
 
-# Install Dependencies
+# 2. Install Dependencies
 pip install -r requirements.txt
 
-# Environment Variables (.env)
+# 3. Create .env file
+# (add the following inside .env)
 GOOGLE_API_KEY=your_google_api_key
 HF_TOKEN=your_huggingface_token
 GOOGLE_APPLICATION_CREDENTIALS=./credentials.json
 
-# Run Server
+# 4. Run the Server
 python app.py
 
-# Access
+# 5. Open in Browser
 http://localhost:5000
