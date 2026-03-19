@@ -11,7 +11,6 @@ Follow these steps to run the ASEAN Multilingual AI Assistant locally.
 
 ---
 
-```markdown
 ### 🧊 Quick Setup (All-in-One)
 
 ```bash
