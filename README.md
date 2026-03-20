@@ -41,6 +41,6 @@ python app.py
 <div style="border:1px solid #ccc; padding:12px; margin:12px 0; border-radius:6px;">
 <b>5️⃣ Open in Browser</b><br>
 <pre>
-http://localhost:5000
+http://localhost:10000
 </pre>
 </div>
