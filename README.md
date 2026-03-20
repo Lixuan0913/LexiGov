@@ -1,66 +1,13 @@
-## 🚀 Live Demo
+**LexiGov** is a full-stack AI application built to bridge the gap between complex government legislation and the general public. Utilizing a custom Retrieval-Augmented Generation (RAG) pipeline, Google's Gemini LLM, and native Whisper voice transcription, LexiGov allows users to ask complex policy questions—via text or voice—and receive highly accurate, simplified answers in their native ASEAN language.
 
-Try LexiGov directly in your browser! 
-
-<div style="border:1px solid #0366d6; background-color: #f1f8ff; padding:12px; margin:12px 0; border-radius:6px;">
-<b>🌐 Try the App Here:</b><br>
-<a href="https://huggingface.co/spaces/kelly0913xuan/LexiGov" target="_blank" style="color: #0366d6; font-weight: bold; text-decoration: none;">LexiGov ↗</a>
-</div>
-
-### 💡 Try Asking LexiGov:
-Not sure what to ask? Copy and paste any of these test questions to see the AI in action. It will automatically reply in the language you use!
-
-* 🇬🇧 **English:** *"What is dementia?"*
-* 🇲🇾 **Bahasa Melayu :** *"Bagaimana memastikan kesihatan orang tua?"*
-* 🇮🇩 **Bahasa Indonesia (Immigration & Elderly):** *"Apa itu Undang-Undang Keimigrasian?"*
-
-> ⚠️ **Note:** LexiGov relies on a specific database of provided government documents to answer questions. Because this is a demonstration prototype, its current dataset is limited, and it may not be able to answer questions about policies outside of its existing knowledge base!
 ---
 
-## ⚙️ Setup Guide
+## ✨ Key Features
 
-Follow these steps to run the ASEAN Multilingual AI Assistant locally.
+LexiGov isn't just a standard chatbot; it is a full-stack AI application designed specifically for navigating complex ASEAN government policies.
 
-### 🧊 Quick Setup (All-in-One)
-
-<div style="border:1px solid #ccc; padding:12px; margin:12px 0; border-radius:6px;">
-<b>1️⃣ Clone the Repository</b><br>
-<pre>
-git clone https://github.com/Lixuan0913/LexiGov.git
-cd aseanL-main
-</pre>
-</div>
-
-<div style="border:1px solid #ccc; padding:12px; margin:12px 0; border-radius:6px;">
-<b>2️⃣ Install Dependencies</b><br>
-<pre>
-pip install -r requirements.txt
-</pre>
-</div>
-
-<div style="border:1px solid #ccc; padding:12px; margin:12px 0; border-radius:6px;">
-<b>3️⃣ Create .env File</b><br>
-Create and Add the following inside <code>.env</code>:  
-<pre>
-GOOGLE_API_KEY=your_google_api_key
-HF_TOKEN=your_huggingface_token
-GOOGLE_APPLICATION_CREDENTIALS=./credentials.json
-</pre>
-</div>
-
-<div style="border:1px solid #ccc; padding:12px; margin:12px 0; border-radius:6px;">
-<b>4️⃣ Run the Server</b><br>
-<pre>
-python app.py
-</pre>
-</div>
-
-<div style="border:1px solid #ccc; padding:12px; margin:12px 0; border-radius:6px;">
-<b>5️⃣ Open in Browser</b><br>
-<pre>
-http://localhost:10000
-</pre>
-</div>
-
-
-</div>
+* 🤖 **Advanced RAG Engine:** Ask complex legal and policy questions. LexiGov uses a Retrieval-Augmented Generation (RAG) pipeline powered by ChromaDB and Google Generative AI Embeddings to find the exact documents needed to answer your query.
+* 🎙️ **Native Voice Transcription:** Don't want to type? Speak your questions! Integrated with the `faster-whisper` AI model to transcribe audio to text in milliseconds.
+* 🔊 **Interactive Text-to-Speech:** Listen to your answers on the go. LexiGov features integrated TTS capabilities to read out complex policy explanations in clear, natural audio.
+* 🌍 **Seamless Multilingual Support:** Ask a question in English, Malay, Mandarin, or any other ASEAN language. The Gemini LLM automatically detects your language and replies in the exact same one.
+* 🛡️ **Hallucination-Free Responses:** By strictly grounding the AI's knowledge in a custom ChromaDB vector database, LexiGov ensures factual, document-backed answers rather than AI guesswork.
