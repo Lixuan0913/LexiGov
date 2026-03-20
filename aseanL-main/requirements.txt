@@ -1,4 +1,3 @@
-flask
 faster-whisper
 langchain-community
 langchain-huggingface
@@ -14,3 +13,7 @@ pymupdf
 pytesseract
 pillow
 google-cloud-texttospeech
+fastapi
+uvicorn
+python-multipart
+jinja2

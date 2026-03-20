@@ -10,8 +10,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-GOOGLE_API_KEY=os.getenv("GOOGLE_API_KEY")
-
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 PROMPT_TEMPLATE = """
 You are LexiGov, a helpful and knowledgeable AI assistant specializing in ASEAN government policies, laws, and public services.
@@ -34,45 +33,57 @@ Instructions for your response:
 Answer:
 """
 
-
-# Embeddings
-embeddings = HuggingFaceEmbeddings(
-    model_name="intfloat/multilingual-e5-small"
-)
-
-# Vector database
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-chroma_path = os.path.join(BASE_DIR, "chroma_db")
-
-db = Chroma(
-    persist_directory=chroma_path,
-    embedding_function=embeddings
-)
-
-retriever = db.as_retriever(search_kwargs={"k":5})
-
-# Gemini
-llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-pro",
-    temperature=0.2,
-    google_api_key=GOOGLE_API_KEY
-)
-
-prompt = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
-
-# Format documents
+# Format documents helper
 def format_docs(docs):
     return "\n\n".join(doc.page_content for doc in docs)
 
-# RAG chain
-rag_chain = (
-    {"context": retriever | format_docs, "question": RunnablePassthrough()}
-    | prompt
-    | llm
-    | StrOutputParser()
-)
+# ---------------------------------------------------------
+# 🔥 LAZY LOADER: This stops Render from timing out!
+# ---------------------------------------------------------
+_embeddings = None
+_db = None
+_llm = None
+_prompt = None
 
+def get_rag_components():
+    global _embeddings, _db, _llm, _prompt
+    
+    if _embeddings is None:
+        print("Loading HuggingFace Embeddings...")
+        _embeddings = HuggingFaceEmbeddings(
+            model_name="intfloat/multilingual-e5-small"
+        )
+        
+    if _db is None:
+        print("Connecting to Chroma Vector Database...")
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        chroma_path = os.path.join(BASE_DIR, "chroma_db")
+        _db = Chroma(
+            persist_directory=chroma_path,
+            embedding_function=_embeddings
+        )
+        
+    if _llm is None:
+        print("Initializing Gemini LLM...")
+        _llm = ChatGoogleGenerativeAI(
+            model="gemini-2.5-pro",
+            temperature=0.2,
+            google_api_key=GOOGLE_API_KEY
+        )
+        
+    if _prompt is None:
+        print("Setting up prompt template...")
+        _prompt = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
+        
+    return _embeddings, _db, _llm, _prompt
+
+# ---------------------------------------------------------
+# MAIN ENGINE
+# ---------------------------------------------------------
 def rag_engine(query_text):
+    
+    # 1. Load models ONLY when a query is actually made
+    embeddings, db, llm, prompt = get_rag_components()
 
     # retrieve with similarity score
     results = db.similarity_search_with_score(query_text, k=50)
@@ -107,8 +118,6 @@ def rag_engine(query_text):
 
     chain = prompt | llm | StrOutputParser()
 
-    import json
-
     raw_response = chain.invoke({
         "context": context,
         "question": query_text
@@ -123,7 +132,7 @@ def rag_engine(query_text):
         found = False
 
     # -----------------------------
-    # Decide sources (🔥 FIX HERE)
+    # Decide sources
     # -----------------------------
     if not found or best_score > CONFIDENCE_THRESHOLD or no_relevant_docs:
         return answer, []   # ✅ ALWAYS EMPTY LIST
@@ -147,9 +156,3 @@ def rag_engine(query_text):
             break
 
     return answer, sources
-    #print(answer)
-    #print(sources)
-
-#rag_engine("What is Immigration Act?")
-
-
