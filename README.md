@@ -1,8 +1,17 @@
+## 🚀 Live Demo
+
+Skip the installation and try LexiGov directly in your browser! 
+
+<div style="border:1px solid #0366d6; background-color: #f1f8ff; padding:12px; margin:12px 0; border-radius:6px;">
+<b>🌐 Try the App Here:</b><br>
+<a href="https://huggingface.co/spaces/kelly0913xuan/LexiGov" target="_blank" style="color: #0366d6; font-weight: bold; text-decoration: none;">Launch on Hugging Face Spaces ↗</a>
+</div>
+
+---
+
 ## ⚙️ Setup Guide
 
 Follow these steps to run the ASEAN Multilingual AI Assistant locally.
-
----
 
 ### 🧊 Quick Setup (All-in-One)
 
@@ -43,4 +52,7 @@ python app.py
 <pre>
 http://localhost:10000
 </pre>
+</div>
+
+
 </div>
